@@ -3,11 +3,16 @@ import logo from './logo.svg';
 import './App.css';
 
 import { API } from 'aws-amplify';
-import { List } from 'antd';
+import { List, Input, Button } from 'antd';
 import 'antd/dist/antd.css';
 import { listNotes } from './graphql/queries';
 
+import { v4 as uuid } from 'uuid';
+import { CreaNote as CreateNote } from './graphql/mutations';
+
 const App = () => {
+  const CLIENT_ID =uuid();
+  //console.log()
 
   const initialState = {
     notes: []
@@ -34,6 +39,29 @@ const App = () => {
           , loading: false
           , error: true 
         };
+
+        case 'ADD_NOTE':
+          return { 
+            ...state
+            , notes: [
+            action.note
+            , ...state.notes
+            ]
+          };
+        case 'RESET_FORM':
+          return { 
+            ...state
+            , form: initialState.form 
+          };
+        case 'SET_INPUT':
+          return { 
+            ...state
+            , form: { 
+              ...state.form
+              , [action.name]: action.value 
+            } 
+          };
+
       default:
         // return state
         return { 
@@ -61,6 +89,39 @@ const App = () => {
       dispatch({ 
         type: 'ERROR' 
       });
+    }
+  }
+
+  const createNote = async () => {
+    //Destructuring the form object out of the current state.
+    const { form } = state;
+    // Lame form validation, uses alert:
+    if (!form.name || !form.description) {
+       return alert('please enter a name and description')
+    }
+    const note = { 
+      ...form //spreads in name and description
+      , clientId: CLIENT_ID
+      , completed: false
+      , id: uuid() 
+    };
+
+
+    dispatch({ 
+      type: 'ADD_NOTE'
+      , note // Same as note: note, JS shorthand syntax for creating properties  with the same name as their value 
+    })
+    dispatch({ type: 'RESET_FORM' })
+    try {
+      await API.graphql({
+        query: CreateNote,
+        variables: { 
+          input: note 
+        }
+      });
+      console.log('successfully created note!')
+    } catch (err) {
+      console.log("error: ", err)
     }
   }
 
