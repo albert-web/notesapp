@@ -20,7 +20,7 @@ import { onCreateNote } from './graphql/subscriptions';
   console.log(CLIENT_ID)
 
   const App = () => {
-    
+
   const initialState = {
     notes: []
     , loading: true
