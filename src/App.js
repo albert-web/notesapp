@@ -13,11 +13,14 @@ import {
   , deleteNote as DeleteNote 
   , updateNote as UpdateNote
 } from './graphql/mutations';
+import { onCreateNote } from './graphql/subscriptions';
 
-const App = () => {
+
   const CLIENT_ID =uuid();
-  //console.log()
+  console.log(CLIENT_ID)
 
+  const App = () => {
+    
   const initialState = {
     notes: []
     , loading: true
@@ -190,10 +193,31 @@ const App = () => {
 
   useEffect(
     () => {
+
     fetchNotes();
+
+    const subscription = API.graphql({
+      query: onCreateNote
+    })
+      .subscribe({
+        next: (noteData) => {
+          console.log(noteData);
+          const note = noteData.value.data.onCreateNote
+
+          if (CLIENT_ID === note.clientId) 
+            return;
+
+          dispatch({ 
+            type: 'ADD_NOTE'
+            , note //shorthand for note: note
+          });
+        }
+      });
+
+      return () => subscription.unsubscribe();
   }
-  , []
-  );
+    , []
+  )
 
   const styles = {
     //container: {padding: new Date().getSeconds() % 2 == 0? 20:200},
