@@ -8,7 +8,7 @@ import 'antd/dist/antd.css';
 import { listNotes } from './graphql/queries';
 
 import { v4 as uuid } from 'uuid';
-import { CreaNote as CreateNote } from './graphql/mutations';
+import { createNote as CreateNote } from './graphql/mutations';
 
 const App = () => {
   const CLIENT_ID =uuid();
@@ -44,8 +44,9 @@ const App = () => {
           return { 
             ...state
             , notes: [
-            action.note
-            , ...state.notes
+              
+            ...state.notes
+            , action.note
             ]
           };
         case 'RESET_FORM':
@@ -125,6 +126,13 @@ const App = () => {
     }
   }
 
+  const onChange = (e) => {
+    dispatch({ 
+      type: 'SET_INPUT'
+      , name: e.target.name
+      , value: e.target.value 
+    })
+  }
   useEffect(
     () => {
     fetchNotes();
@@ -133,7 +141,8 @@ const App = () => {
   );
 
   const styles = {
-    container: {padding: new Date().getSeconds() % 2 == 0? 20:200},
+    //container: {padding: new Date().getSeconds() % 2 == 0? 20:200},
+    container: {padding: 20},
     input: {marginBottom: 10},
     item: { textAlign: 'left' },
     p: { color: '#1890ff' }
@@ -141,7 +150,9 @@ const App = () => {
 
   const renderItem = (item) => {
     return (
-      <List.Item style={ styles.item }>
+      <List.Item 
+        style={ styles.item }
+      >
         <List.Item.Meta
           title={ item.name }
           description={ item.description }
@@ -154,6 +165,27 @@ const App = () => {
     <div 
     style={ styles.container }
     >
+    <Input
+    onChange={onChange}
+    value={state.form.name}
+    placeholder="Note Name"
+    name='name'
+    style={styles.input}
+    />
+    
+    <Input
+    onChange={onChange}
+    value={state.form.description}
+    placeholder="Note description"
+    name='description'
+    style={styles.input}
+    />
+
+    <Button
+    onClick={createNote}
+    type="primary"
+    >Create New Note</Button>
+
     <List
       loading={ state.loading }
       dataSource={ state.notes }
